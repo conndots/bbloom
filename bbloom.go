@@ -109,7 +109,7 @@ func JSONUnmarshal(dbData []byte) Bloom {
 //
 // Bloom filter
 type Bloom struct {
-	Mtx     sync.Mutex
+	Mtx     sync.RWMutex
 	ElemNum uint64
 	bitset  []uint64
 	sizeExp uint64
@@ -170,8 +170,8 @@ func (bl Bloom) Has(entry []byte) bool {
 // HasTS
 // Thread safe: Mutex.Lock the bloomfilter for the time of processing the entry
 func (bl *Bloom) HasTS(entry []byte) bool {
-	bl.Mtx.Lock()
-	defer bl.Mtx.Unlock()
+	bl.Mtx.RLock()
+	defer bl.Mtx.RUnlock()
 	return bl.Has(entry[:])
 }
 
@@ -192,8 +192,8 @@ func (bl Bloom) AddIfNotHas(entry []byte) (added bool) {
 // returns true if entry was added
 // returns false if entry was allready registered in the bloomfilter
 func (bl *Bloom) AddIfNotHasTS(entry []byte) (added bool) {
-	bl.Mtx.Lock()
-	defer bl.Mtx.Unlock()
+	bl.Mtx.RLock()
+	defer bl.Mtx.RUnlock()
 	return bl.AddIfNotHas(entry[:])
 }
 
