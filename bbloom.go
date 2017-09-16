@@ -52,7 +52,7 @@ func calcSizeByWrongPositives(numEntries, wrongs float64) (uint64, uint64) {
 
 // New
 // returns a new bloomfilter
-func New(params ...float64) (bloomfilter Bloom) {
+func New(params ...float64) (bloomfilter *Bloom) {
 	var entries, locs uint64
 	if len(params) == 2 {
 		if params[1] < 1 {
@@ -64,7 +64,7 @@ func New(params ...float64) (bloomfilter Bloom) {
 		log.Fatal("usage: New(float64(number_of_entries), float64(number_of_hashlocations)) i.e. New(float64(1000), float64(3)) or New(float64(number_of_entries), float64(number_of_hashlocations)) i.e. New(float64(1000), float64(0.03))")
 	}
 	size, exponent := getSize(uint64(entries))
-	bloomfilter = Bloom{
+	bloomfilter = &Bloom{
 		sizeExp: exponent,
 		size:    size - 1,
 		setLocs: locs,
@@ -77,7 +77,7 @@ func New(params ...float64) (bloomfilter Bloom) {
 // NewWithBoolset
 // takes a []byte slice and number of locs per entry
 // returns the bloomfilter with a bitset populated according to the input []byte
-func NewWithBoolset(bs *[]byte, locs uint64) (bloomfilter Bloom) {
+func NewWithBoolset(bs *[]byte, locs uint64) (bloomfilter *Bloom) {
 	bloomfilter = New(float64(len(*bs)<<3), float64(locs))
 	ptr := uintptr(unsafe.Pointer(&bloomfilter.bitset[0]))
 	for _, b := range *bs {
@@ -97,7 +97,7 @@ type bloomJSONImExport struct {
 // JSONUnmarshal
 // takes JSON-Object (type bloomJSONImExport) as []bytes
 // returns bloom32 / bloom64 object
-func JSONUnmarshal(dbData []byte) Bloom {
+func JSONUnmarshal(dbData []byte) *Bloom {
 	bloomImEx := bloomJSONImExport{}
 	json.Unmarshal(dbData, &bloomImEx)
 	buf := bytes.NewBuffer(bloomImEx.FilterSet)
