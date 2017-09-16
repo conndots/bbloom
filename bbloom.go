@@ -29,6 +29,57 @@ import (
 	"unsafe"
 )
 
+type CBloom struct {
+	shardNum  int
+	shards    []*Bloom
+	ShardFunc func([]byte) int
+}
+
+func defaultHashFunc(entry []byte) int {
+	elen := len(entry)
+	if elen > 0 {
+		hash := 0
+		for i := 0; i < elen; i++ {
+			hash = 31*hash + int(entry[i])
+		}
+		return hash
+	}
+	return 0
+}
+
+func NewBloomWithConcurrent(size int64, errorRate float64, shardNum int) *CBloom {
+	snum := float64(size / int64(shardNum))
+	shards := make([]*Bloom, shardNum)
+	for i := 0; i < shardNum; i++ {
+		shards[i] = New(snum, errorRate)
+	}
+	return &CBloom{
+		shardNum:  shardNum,
+		shards:    shards,
+		ShardFunc: defaultHashFunc,
+	}
+}
+
+func (b *CBloom) getShardedIndex(entry []byte) int {
+	return b.ShardFunc(entry) % b.shardNum
+}
+
+func (b *CBloom) AddTS(entry []byte) {
+	b.shards[b.getShardedIndex(entry)].AddTS(entry)
+}
+
+func (b *CBloom) HasTS(entry []byte) bool {
+	return b.shards[b.getShardedIndex(entry)].HasTS(entry)
+}
+
+func (b *CBloom) AddIfNotHasTS(entry []byte) bool {
+	return b.shards[b.getShardedIndex(entry)].AddIfNotHasTS(entry)
+}
+
+func (b *CBloom) SetShardingFunc(sfunc func([]byte) int) {
+	b.ShardFunc = sfunc
+}
+
 // helper
 var mask = []uint8{1, 2, 4, 8, 16, 32, 64, 128}
 
