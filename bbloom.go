@@ -48,7 +48,7 @@ func defaultHashFunc(entry []byte) int {
 }
 
 func NewBloomWithConcurrent(size int64, errorRate float64, shardNum int) *CBloom {
-	snum := float64(size / int64(shardNum))
+	snum := float64(size/int64(shardNum) + 1)
 	shards := make([]*Bloom, shardNum)
 	for i := 0; i < shardNum; i++ {
 		shards[i] = New(snum, errorRate)
