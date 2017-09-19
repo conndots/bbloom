@@ -207,7 +207,7 @@ func (bl *Bloom) AddTS(entry []byte) {
 // Has
 // check if bit(s) for entry is/are set
 // returns true if the entry was added to the Bloom Filter
-func (bl Bloom) Has(entry []byte) bool {
+func (bl *Bloom) Has(entry []byte) bool {
 	l, h := bl.sipHash(entry)
 	for i := uint64(0); i < bl.setLocs; i++ {
 		switch bl.IsSet((h + i*l) & bl.size) {
@@ -230,7 +230,7 @@ func (bl *Bloom) HasTS(entry []byte) bool {
 // Only Add entry if it's not present in the bloomfilter
 // returns true if entry was added
 // returns false if entry was allready registered in the bloomfilter
-func (bl Bloom) AddIfNotHas(entry []byte) (added bool) {
+func (bl *Bloom) AddIfNotHas(entry []byte) (added bool) {
 	if bl.Has(entry[:]) {
 		return added
 	}
@@ -280,7 +280,7 @@ func (bl *Bloom) IsSet(idx uint64) bool {
 
 // JSONMarshal
 // returns JSON-object (type bloomJSONImExport) as []byte
-func (bl Bloom) JSONMarshal() []byte {
+func (bl *Bloom) JSONMarshal() []byte {
 	bloomImEx := bloomJSONImExport{}
 	bloomImEx.SetLocs = uint64(bl.setLocs)
 	bloomImEx.FilterSet = make([]byte, len(bl.bitset)<<3)
