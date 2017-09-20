@@ -22,11 +22,12 @@ package bbloom
 
 import (
 	"bytes"
-	"encoding/json"
 	"log"
 	"math"
 	"sync"
 	"unsafe"
+
+	json "github.com/json-iterator/go"
 )
 
 type CBloom struct {
