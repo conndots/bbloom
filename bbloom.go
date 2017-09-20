@@ -282,6 +282,15 @@ func (bl *Bloom) IsSet(idx uint64) bool {
 // JSONMarshal
 // returns JSON-object (type bloomJSONImExport) as []byte
 func (bl *Bloom) JSONMarshal() []byte {
+	bloomImEx := bl.getJSONImExport()
+	data, err := json.Marshal(*bloomImEx)
+	if err != nil {
+		log.Fatal("json.Marshal failed: ", err)
+	}
+	return data
+}
+
+func (bl *Bloom) getJSONImExport() *bloomJSONImExport {
 	bloomImEx := bloomJSONImExport{}
 	bloomImEx.SetLocs = uint64(bl.setLocs)
 	bloomImEx.FilterSet = make([]byte, len(bl.bitset)<<3)
@@ -290,7 +299,18 @@ func (bl *Bloom) JSONMarshal() []byte {
 		bloomImEx.FilterSet[i] = *(*byte)(unsafe.Pointer(ptr))
 		ptr++
 	}
-	data, err := json.Marshal(bloomImEx)
+	return &bloomImEx
+}
+
+func (bl *Bloom) getJSONImExportTS() *bloomJSONImExport {
+	bl.Mtx.RLock()
+	defer bl.Mtx.RUnlock()
+
+	return bl.getJSONImExport()
+}
+func (bl *Bloom) JSONMarshalTS() []byte {
+	bloomImEx := bl.getJSONImExportTS()
+	data, err := json.Marshal(*bloomImEx)
 	if err != nil {
 		log.Fatal("json.Marshal failed: ", err)
 	}
